@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center mb-4">📚 Kütüphanedeki Kitaplar</h2>
+
+<table class="table table-bordered table-striped text-center align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>ID</th>
+            <th>Kitap Adı</th>
+            <th>Yazar ID</th>
+            <th>Kategori ID</th>
+            <th>Stok</th>
+        </tr>
+    </thead>
+    <tbody id="kitap-tablo"></tbody>
+</table>
+
+<script>
+async function kitaplariGetir() {
+    try {
+        const response = await fetch("/api/kitaplar");
+        const data = await response.json();
+
+        const tablo = document.getElementById("kitap-tablo");
+        tablo.innerHTML = "";
+
+        if (data.length === 0) {
+            tablo.innerHTML = "<tr><td colspan='5'>Kayıtlı kitap bulunamadı.</td></tr>";
+            return;
+        }
+
+        data.forEach(k => {
+            tablo.innerHTML += `
+                <tr>
+                    <td>${k.id}</td>
+                    <td>${k.ad}</td>
+                    <td>${k.yazar_id ?? "-"}</td>
+                    <td>${k.kategori_id ?? "-"}</td>
+                    <td>${k.stok}</td>
+                </tr>
+            `;
+        });
+    } catch (err) {
+        console.error(err);
+        document.getElementById("kitap-tablo").innerHTML =
+            "<tr><td colspan='5'>Veriler yüklenemedi.</td></tr>";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", kitaplariGetir);
+</script>
+
+{% endblock %}

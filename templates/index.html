@@ -1,0 +1,33 @@
+<!-- templates/index.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mt-5">
+    <h1>Akıllı Kütüphane Yönetim Sistemine Hoş Geldiniz</h1>
+    <p class="lead">
+        Flask + PostgreSQL tabanlı modern bir kütüphane uygulaması
+    </p>
+
+    <!-- Giriş Yap -->
+    <div class="mt-4">
+        <a href="/login" class="btn btn-success me-2">
+            Giriş Yap
+        </a>
+
+        <a href="/kitaplar" class="btn btn-primary">
+            Kitapları Görüntüle
+        </a>
+    </div>
+</div>
+
+<script>
+    // Eğer kullanıcı zaten giriş yaptıysa (token varsa)
+    const token = localStorage.getItem("token");
+    const rol = localStorage.getItem("rol");
+
+    if (token && rol) {
+        // İleride otomatik yönlendirme için hazır
+        console.log("Kullanıcı zaten giriş yapmış:", rol);
+    }
+</script>
+{% endblock %}

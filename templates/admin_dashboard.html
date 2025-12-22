@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin Dashboard | Akıllı Kütüphane</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .topbar {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: #34495e;
+            min-height: calc(100vh - 50px);
+            padding-top: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background: #2c3e50;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        /* Kartlar */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin: 0;
+            color: #555;
+            font-size: 16px;
+        }
+        .card p {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0 0;
+            color: #2c3e50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background: #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">Admin Dashboard</div>
+
+<div class="container">
+
+    <!-- SOL MENÜ -->
+    <div class="sidebar">
+        <a href="/admin/dashboard">Dashboard</a>
+        <a href="/admin">Kitap Yönetimi</a>
+        <a href="/kullanicilar">Kullanıcılar</a>
+        <a href="/oduncler-sayfa">Ödünçler</a>
+        <a href="/cezalar-sayfa">Cezalar</a>
+        <a href="#" onclick="cikisYap()">Çıkış Yap</a>
+    </div>
+
+    <!-- İÇERİK -->
+    <div class="content">
+        <h2>Genel Durum</h2>
+
+        <!-- İSTATİSTİK KARTLARI -->
+        <div class="cards">
+            <div class="card">
+                <h3>Toplam Kitap</h3>
+                <p id="toplamKitap">-</p>
+            </div>
+            <div class="card">
+                <h3>Toplam Kullanıcı</h3>
+                <p id="toplamKullanici">-</p>
+            </div>
+            <div class="card">
+                <h3>Ödünçteki Kitap</h3>
+                <p id="oduncSayisi">-</p>
+            </div>
+            <div class="card">
+                <h3>Aktif Ceza</h3>
+                <p id="cezaSayisi">-</p>
+            </div>
+        </div>
+
+        <!-- SON EKLENEN KİTAPLAR -->
+        <h3>Son Eklenen Kitaplar</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Kitap Adı</th>
+                    <th>Stok</th>
+                </tr>
+            </thead>
+            <tbody id="sonKitaplar"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+function cikisYap() {
+    localStorage.clear();
+    window.location.href = "/login";
+}
+
+async function dashboardVerileriGetir() {
+    const [kitaplar, kullanicilar, oduncler, cezalar] = await Promise.all([
+        fetch("/api/kitaplar").then(r => r.json()),
+        fetch("/api/kullanicilar").then(r => r.json()),
+        fetch("/api/oduncler").then(r => r.json()),
+        fetch("/api/cezalar").then(r => r.json())
+    ]);
+
+    // Kartlar
+    document.getElementById("toplamKitap").innerText = kitaplar.length;
+    document.getElementById("toplamKullanici").innerText = kullanicilar.length;
+    document.getElementById("oduncSayisi").innerText =
+        oduncler.filter(o => !o.teslim_edildi).length;
+    document.getElementById("cezaSayisi").innerText = cezalar.length;
+
+    // Son 5 kitap
+    const tbody = document.getElementById("sonKitaplar");
+    tbody.innerHTML = "";
+
+    kitaplar.slice(-5).reverse().forEach(k => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${k.id}</td>
+                <td>${k.ad}</td>
+                <td>${k.stok}</td>
+            </tr>
+        `;
+    });
+}
+
+dashboardVerileriGetir();
+</script>
+
+</body>
+</html>

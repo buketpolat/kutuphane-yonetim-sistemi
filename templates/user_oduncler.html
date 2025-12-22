@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center mb-4">Ödünç Aldığım Kitaplar</h2>
+
+<table class="table table-bordered text-center align-middle">
+    <thead class="table-primary">
+        <tr>
+            <th>ID</th>
+            <th>Kitap Adı</th>
+            <th>Başlangıç</th>
+            <th>İade Tarihi</th>
+            <th>Durum</th>
+        </tr>
+    </thead>
+    <tbody id="odunc-table"></tbody>
+</table>
+
+<script>
+async function odunclerimiGetir() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const response = await fetch("/api/user/oduncler", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await response.json();
+    const tbody = document.getElementById("odunc-table");
+
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">Henüz ödünç aldığın kitap yok.</td>
+            </tr>
+        `;
+        return;
+    }
+
+    data.forEach(o => {
+        const durum = o.teslim_edildi ? "İade Edildi" : "Devam Ediyor";
+
+        tbody.innerHTML += `
+            <tr>
+                <td>${o.id}</td>
+                <td>${o.kitap_adi}</td>
+                <td>${o.baslangic_tarih}</td>
+                <td>${o.iade_tarih}</td>
+                <td>${durum}</td>
+            </tr>
+        `;
+    });
+}
+
+odunclerimiGetir();
+</script>
+
+{% endblock %}

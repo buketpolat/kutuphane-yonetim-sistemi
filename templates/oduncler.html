@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h3 class="text-center mb-4">Ödünç Alınan Kitaplar</h3>
+
+<table class="table table-bordered text-center align-middle">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Kitap ID</th>
+            <th>Kullanıcı ID</th>
+            <th>Başlangıç Tarihi</th>
+            <th>İade Tarihi</th>
+            <th>Teslim Edildi</th>
+            <th>İşlem</th>
+        </tr>
+    </thead>
+    <tbody id="odunclerTable"></tbody>
+</table>
+
+<script>
+fetch("/api/oduncler")
+    .then(res => res.json())
+    .then(data => {
+        const tbody = document.getElementById("odunclerTable");
+        tbody.innerHTML = "";
+
+        data.forEach(o => {
+            const row = document.createElement("tr");
+
+            if (!o.teslim_edildi) {
+                row.classList.add("table-danger");
+            }
+
+            row.innerHTML = `
+                <td>${o.id}</td>
+                <td>${o.kitap_id}</td>
+                <td>${o.kullanici_id}</td>
+                <td>${o.baslangic_tarih || "-"}</td>
+                <td>${o.iade_tarih || "-"}</td>
+                <td>${o.teslim_edildi ? "Evet" : "Hayır"}</td>
+                <td>
+                    ${
+                        o.teslim_edildi
+                        ? "<span class='text-success fw-bold'>Teslim Edildi</span>"
+                        : `<button class="btn btn-success btn-sm" onclick="teslimEt(${o.id})">Teslim Et</button>`
+                    }
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    });
+
+function teslimEt(id) {
+    if (!confirm("Kitabı iade etmek istiyor musun?")) return;
+
+    fetch(`/api/oduncler/${id}/iade`, { method: "PUT" })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.mesaj);
+            location.reload();
+        });
+}
+</script>
+
+{% endblock %}

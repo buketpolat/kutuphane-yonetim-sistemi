@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kitap Ekle | Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f8;
+        }
+
+        .container {
+            width: 400px;
+            margin: 80px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #2c3e50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #1a252f;
+        }
+
+        .hata {
+            color: red;
+            text-align: center;
+        }
+
+        .geri {
+            margin-top: 15px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kitap Ekle</h2>
+
+    <form id="kitapForm">
+        <label>Kitap Adı</label>
+        <input type="text" id="ad" required>
+
+        <label>Yazar</label>
+        <input type="text" id="yazar">
+
+        <label>Kategori</label>
+        <input type="text" id="kategori">
+
+        <label>Stok</label>
+        <input type="number" id="stok" min="0" required>
+
+        <button type="submit">Kaydet</button>
+    </form>
+
+    <p class="hata" id="hata"></p>
+
+    <div class="geri">
+        <a href="/admin">⬅ Admin Paneline Dön</a>
+    </div>
+</div>
+
+<script>
+document.getElementById("kitapForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        document.getElementById("hata").innerText = "Yetkisiz erişim!";
+        return;
+    }
+
+    const data = {
+        ad: document.getElementById("ad").value,
+        yazar: document.getElementById("yazar").value,
+        kategori: document.getElementById("kategori").value,
+        stok: parseInt(document.getElementById("stok").value)
+    };
+
+    const response = await fetch("/api/kitaplar", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify(data)
+    });
+
+    const sonuc = await response.json();
+
+    if (!response.ok) {
+        document.getElementById("hata").innerText = sonuc.hata || "Hata oluştu";
+        return;
+    }
+
+    alert("Kitap başarıyla eklendi!");
+    window.location.href = "/admin";
+});
+</script>
+
+</body>
+</html>

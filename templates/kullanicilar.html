@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">
+        <b>Sistemdeki Kullanıcılar</b>
+    </h2>
+
+    <table class="table table-bordered text-center align-middle">
+        <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Ad</th>
+                <th>Email</th>
+                <th>Rol</th>
+            </tr>
+        </thead>
+        <tbody id="kullanici-tablo">
+            <!-- Veriler buraya JavaScript ile gelecek -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // API'den kullanıcı verilerini çek
+    fetch("/api/kullanicilar")
+        .then(response => response.json())
+        .then(data => {
+            const tablo = document.getElementById("kullanici-tablo");
+            tablo.innerHTML = "";
+
+            if (data.length === 0) {
+                tablo.innerHTML = "<tr><td colspan='4'>Kayıtlı kullanıcı bulunamadı.</td></tr>";
+                return;
+            }
+
+            data.forEach(k => {
+                tablo.innerHTML += `
+                    <tr>
+                        <td>${k.id}</td>
+                        <td>${k.ad}</td>
+                        <td>${k.email}</td>
+                        <td>${k.rol}</td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => {
+            console.error("Veri alınırken hata oluştu:", error);
+            document.getElementById("kullanici-tablo").innerHTML =
+                "<tr><td colspan='4'>Veri yüklenemedi.</td></tr>";
+        });
+</script>
+
+{% endblock %}

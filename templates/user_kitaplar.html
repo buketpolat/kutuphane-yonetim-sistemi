@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kitaplar | Kullanıcı Paneli</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .topbar {
+            background: #1e40af;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: #1e3a8a;
+            min-height: calc(100vh - 50px);
+            padding-top: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background: #1e40af;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+        }
+        th {
+            background: #f1f5f9;
+        }
+        button {
+            padding: 6px 10px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            background: #2563eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">Kitaplar</div>
+
+<div class="container">
+
+    <!-- SOL MENÜ -->
+    <div class="sidebar">
+        <a href="/user">Ana Sayfa</a>
+        <a href="/user/kitaplar">Kitaplar</a>
+        <a href="/user/oduncler">Ödünçlerim</a>
+        <a href="/user/cezalar">Cezalarım</a>
+        <a href="#" onclick="cikisYap()">Çıkış Yap</a>
+    </div>
+
+    <!-- İÇERİK -->
+    <div class="content">
+        <h2>Mevcut Kitaplar</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Kitap Adı</th>
+                    <th>Yazar ID</th>
+                    <th>Kategori ID</th>
+                    <th>Stok</th>
+                    <th>İşlem</th>
+                </tr>
+            </thead>
+            <tbody id="kitaplarTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+function cikisYap() {
+    localStorage.clear();
+    window.location.href = "/login";
+}
+
+async function kitaplariGetir() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const res = await fetch("/api/kitaplar", {
+        headers: { "Authorization": "Bearer " + token }
+    });
+
+    const kitaplar = await res.json();
+    const tbody = document.getElementById("kitaplarTable");
+    tbody.innerHTML = "";
+
+    kitaplar.forEach(k => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${k.ad}</td>
+                <td>${k.yazar_id}</td>
+                <td>${k.kategori_id}</td>
+                <td>${k.stok}</td>
+                <td>
+                    <button
+                        onclick="oduncAl(${k.id})"
+                        ${k.stok <= 0 ? "disabled" : ""}>
+                        Ödünç Al
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+async function oduncAl(kitapId) {
+    const token = localStorage.getItem("token");
+
+    const res = await fetch("/api/oduncler", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+            kitap_id: kitapId
+        })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        alert(data.hata || "İşlem başarısız");
+        return;
+    }
+
+    alert("Kitap ödünç alındı");
+    kitaplariGetir();
+}
+
+kitaplariGetir();
+</script>
+
+</body>
+</html>

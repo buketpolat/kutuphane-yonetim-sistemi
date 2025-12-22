@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Cezalar Listesi</h2>
+
+    <table class="table table-bordered text-center align-middle shadow">
+        <thead class="table-primary">
+            <tr>
+                <th>ID</th>
+                <th>Ödünç ID</th>
+                <th>Miktar (₺)</th>
+                <th>Tarih</th>
+                <th>Açıklama</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody id="cezalar-body"></tbody>
+    </table>
+</div>
+
+<style>
+    .fade-row {
+        transition: background-color 0.8s ease;
+    }
+    .updated {
+        background-color: #fff3cd !important; /* sarı */
+    }
+    .deleted {
+        background-color: #f8d7da !important; /* kırmızı */
+    }
+    .new {
+        background-color: #d1e7dd !important; /* yeşil */
+    }
+    .badge {
+        font-size: 0.9em;
+    }
+</style>
+
+<script>
+function listeleCezalar() {
+    fetch("/api/cezalar")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.getElementById("cezalar-body");
+            tbody.innerHTML = "";
+
+            data.forEach(ceza => {
+                const row = document.createElement("tr");
+                row.classList.add("fade-row");
+                row.innerHTML = `
+                    <td>${ceza.id}</td>
+                    <td>${ceza.odunc_id}</td>
+                    <td>${ceza.miktar.toFixed(2)}</td>
+                    <td>${ceza.tarih}</td>
+                    <td>${ceza.aciklama}</td>
+                    <td><span class="badge bg-secondary">Normal</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-warning" onclick="duzenleCeza(${ceza.id}, '${ceza.aciklama.replace(/'/g, "\\'")}', this)">Düzenle</button>
+                        <button class="btn btn-sm btn-danger" onclick="silCeza(${ceza.id}, this)">Sil</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        });
+}
+
+// Ceza silme
+function silCeza(id, btn) {
+    if (confirm("Bu cezayı silmek istediğine emin misin?")) {
+        fetch(`/api/cezalar/${id}`, { method: "DELETE" })
+            .then(res => res.json())
+            .then(data => {
+                const row = btn.closest("tr");
+                const badge = row.querySelector(".badge");
+                badge.textContent = "Silindi";
+                badge.className = "badge bg-danger";
+                row.classList.add("deleted");
+
+                setTimeout(() => row.remove(), 1000);
+            });
+    }
+}
+
+// Ceza açıklaması düzenleme
+function duzenleCeza(id, eskiAciklama, btn) {
+    const yeniAciklama = prompt("Yeni açıklamayı gir:", eskiAciklama);
+    if (yeniAciklama && yeniAciklama.trim() !== "") {
+        fetch(`/api/cezalar/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ aciklama: yeniAciklama })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const row = btn.closest("tr");
+            row.children[4].textContent = yeniAciklama;
+            const badge = row.querySelector(".badge");
+            badge.textContent = "Güncellendi";
+            badge.className = "badge bg-warning text-dark";
+            row.classList.add("updated");
+
+            setTimeout(() => row.classList.remove("updated"), 1500);
+        });
+    }
+}
+
+// Sayfa yüklendiğinde otomatik çağır
+window.onload = listeleCezalar;
+</script>
+{% endblock %}

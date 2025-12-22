@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Cezalarım | Kullanıcı Paneli</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .topbar {
+            background: #1e40af;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: #1e3a8a;
+            min-height: calc(100vh - 50px);
+            padding-top: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background: #1e40af;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background: #f1f5f9;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">Cezalarım</div>
+
+<div class="container">
+
+    <div class="sidebar">
+        <a href="/user">Ana Sayfa</a>
+        <a href="/user/kitaplar">Kitaplar</a>
+        <a href="/user/oduncler">Ödünçlerim</a>
+        <a href="/user/cezalar">Cezalarım</a>
+        <a href="#" onclick="cikisYap()">Çıkış Yap</a>
+    </div>
+
+    <div class="content">
+        <h2>Bana Ait Cezalar</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ödünç ID</th>
+                    <th>Miktar (₺)</th>
+                    <th>Tarih</th>
+                    <th>Açıklama</th>
+                </tr>
+            </thead>
+            <tbody id="cezaTable"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+function cikisYap() {
+    localStorage.clear();
+    window.location.href = "/login";
+}
+
+async function cezalarimiGetir() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const res = await fetch("/api/user/cezalar", {
+        headers: {
+            "Authorization": "Bearer " + token
+        }
+    });
+
+    const data = await res.json();
+    const tbody = document.getElementById("cezaTable");
+    tbody.innerHTML = "";
+
+    if (data.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5">Herhangi bir cezan yok 🎉</td>
+            </tr>
+        `;
+        return;
+    }
+
+    data.forEach(c => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${c.id}</td>
+                <td>${c.odunc_id}</td>
+                <td>${c.miktar} ₺</td>
+                <td>${c.tarih}</td>
+                <td>${c.aciklama}</td>
+            </tr>
+        `;
+    });
+}
+
+cezalarimiGetir();
+</script>
+
+</body>
+</html>

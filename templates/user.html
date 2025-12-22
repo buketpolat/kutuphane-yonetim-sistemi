@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Kullanıcı Paneli | Akıllı Kütüphane</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+        }
+        .topbar {
+            background: #1e40af;
+            color: white;
+            padding: 15px 20px;
+            font-size: 20px;
+        }
+        .container {
+            display: flex;
+        }
+        .sidebar {
+            width: 220px;
+            background: #1e3a8a;
+            min-height: calc(100vh - 50px);
+            padding-top: 20px;
+        }
+        .sidebar a {
+            display: block;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+        }
+        .sidebar a:hover {
+            background: #1e40af;
+        }
+        .content {
+            flex: 1;
+            padding: 30px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 6px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .card h3 {
+            margin: 0;
+            color: #555;
+        }
+        .card p {
+            font-size: 28px;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">Kullanıcı Paneli</div>
+
+<div class="container">
+
+    <!-- SOL MENÜ -->
+    <div class="sidebar">
+        <a href="/user">Ana Sayfa</a>
+        <a href="/kitaplar">Kitaplar</a>
+        <a href="/user/oduncler">Ödünçlerim</a>
+        <a href="/user/cezalar">Cezalarım</a>
+        <a href="#" onclick="cikisYap()">Çıkış Yap</a>
+    </div>
+
+    <!-- İÇERİK -->
+    <div class="content">
+        <h2>Genel Durumum</h2>
+
+        <div class="cards">
+            <div class="card">
+                <h3>Ödünç Aldığım Kitap</h3>
+                <p id="oduncSayisi">-</p>
+            </div>
+            <div class="card">
+                <h3>Toplam Ceza</h3>
+                <p id="cezaSayisi">-</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function cikisYap() {
+    localStorage.clear();
+    window.location.href = "/login";
+}
+
+async function kullaniciDashboard() {
+    const token = localStorage.getItem("token");
+    if (!token) {
+        window.location.href = "/login";
+        return;
+    }
+
+    const headers = {
+        "Authorization": "Bearer " + token
+    };
+
+    const [oduncler, cezalar] = await Promise.all([
+        fetch("/api/oduncler", { headers }).then(r => r.json()),
+        fetch("/api/cezalar", { headers }).then(r => r.json())
+    ]);
+
+    // Şimdilik: user’a ait filtre backend’de yapılacak
+    document.getElementById("oduncSayisi").innerText =
+        oduncler.filter(o => !o.teslim_edildi).length;
+
+    document.getElementById("cezaSayisi").innerText = cezalar.length;
+}
+
+kullaniciDashboard();
+</script>
+
+</body>
+</html>

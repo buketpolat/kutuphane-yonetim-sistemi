@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Akıllı Kütüphane - Giriş</title>
+</head>
+<body>
+
+<h1>Akıllı Kütüphane - Giriş</h1>
+
+<form id="loginForm">
+    <label>E-posta:</label><br>
+    <input type="email" id="email" required><br><br>
+
+    <label>Şifre:</label><br>
+    <input type="password" id="sifre" required><br><br>
+
+    <button type="submit">Giriş Yap</button>
+</form>
+
+<p id="hata" style="color:red;"></p>
+
+<script>
+document.getElementById("loginForm").addEventListener("submit", async function(e) {
+    e.preventDefault();
+
+    const email = document.getElementById("email").value;
+    const sifre = document.getElementById("sifre").value;
+
+    try {
+        const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email, sifre })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            document.getElementById("hata").innerText = data.hata;
+            return;
+        }
+
+        // Token & rol kaydı
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("rol", data.rol);
+
+        // Yönlendirme
+        if (data.rol === "admin") {
+            window.location.replace("/admin");
+        } else {
+            window.location.replace("/user");
+        }
+
+    } catch (err) {
+        document.getElementById("hata").innerText = "Sunucuya bağlanılamadı!";
+    }
+});
+</script>
+
+</body>
+</html>
